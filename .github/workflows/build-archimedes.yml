@@ -12,6 +12,7 @@ on:
           - auto
           - pure
           - kernelsu
+          - wifi
   push:
     branches: [main, kernelsu]
 
@@ -57,6 +58,13 @@ jobs:
         run: |
           ./build_archimedes.sh ksu
           grep -q '^CONFIG_KSU=y' "$OUT/.config"
+      - name: Build Wi-Fi kernel
+        if: ${{ env.BUILD_VARIANT == 'wifi' }}
+        env:
+          OUT: ${{ runner.temp }}/archytas-wifi
+        run: |
+          ./build_archimedes.sh wifi
+          grep -q '^CONFIG_MTK_COMBO_CHIP=' "$OUT/.config"
 
       - name: Package pure boot image
         if: ${{ env.BUILD_VARIANT == 'pure' }}
@@ -83,6 +91,18 @@ jobs:
             --kernel "$OUT/arch/arm64/boot/Image.gz-dtb" \
             --output boot-archimedes-kernelsu-32MiB.img
           sha256sum boot-archimedes-kernelsu-32MiB.img
+      - name: Package Wi-Fi boot image
+        if: ${{ env.BUILD_VARIANT == 'wifi' }}
+        env:
+          OUT: ${{ runner.temp }}/archytas-wifi
+        run: |
+          test -f package_archimedes_boot.py
+          python3 -m py_compile package_archimedes_boot.py
+          python3 package_archimedes_boot.py \
+            --template tools/archimedes-boot-template-32MiB.img \
+            --kernel "$OUT/arch/arm64/boot/Image.gz-dtb" \
+            --output boot-archytas-wifi-32MiB.img
+          sha256sum boot-archytas-wifi-32MiB.img
 
       - name: Upload pure artifacts
         if: ${{ env.BUILD_VARIANT == 'pure' }}
@@ -103,3 +123,12 @@ jobs:
           path: |
             boot-archimedes-kernelsu-32MiB.img
             ${{ runner.temp }}/archimedes-ksu/BUILD-INFO.txt
+      - name: Upload Wi-Fi artifacts
+        if: ${{ env.BUILD_VARIANT == 'wifi' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: archytas-wifi-${{ github.sha }}
+          if-no-files-found: error
+          path: |
+            boot-archytas-wifi-32MiB.img
+            ${{ runner.temp }}/archytas-wifi/BUILD-INFO.txt
