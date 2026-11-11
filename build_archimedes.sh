@@ -34,7 +34,10 @@ case "$VARIANT" in
     DEFCONFIG=k61v1_64_archimedes_defconfig
     [[ -f "$ROOT/drivers/kernelsu/Kconfig" ]] || die 'this checkout has no materialized KernelSU tree'
     ;;
-  *) die "usage: $0 pure|ksu" ;;
+  wifi)
+    DEFCONFIG=k61v1_64_archytas_defconfig
+    ;;
+  *) die "usage: $0 pure|ksu|wifi" ;;
 esac
 
 if [[ "${CLEAN_BUILD:-1}" = 1 ]]; then
@@ -58,6 +61,11 @@ MAKE=(make -C "$ROOT" O="$OUT" ARCH=arm64 CROSS_COMPILE="$CROSS_COMPILE"
 CONFIG_TOOL="$OUT/scripts/config"
 [[ -x "$CONFIG_TOOL" ]] || CONFIG_TOOL="$ROOT/scripts/config"
 [[ -x "$CONFIG_TOOL" ]] || die 'scripts/config was not built'
+if [[ "$VARIANT" = wifi && "${WIFI_DISABLE_MODEM:-1}" = 1 ]]; then
+  for symbol in CONFIG_MTK_CCCI_DEVICES CONFIG_MTK_ECCCI_DRIVER CONFIG_MTK_ECCCI_CLDMA CONFIG_MTK_ECCCI_CCIF CONFIG_MTK_ECCCI_C2K; do
+    "$CONFIG_TOOL" --file "$OUT/.config" --disable "$symbol"
+  done
+fi
 if [[ "$VARIANT" = ksu ]]; then
   "$CONFIG_TOOL" --file "$OUT/.config" --enable CONFIG_KSU
 else
