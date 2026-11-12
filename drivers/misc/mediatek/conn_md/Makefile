@@ -17,7 +17,7 @@
 ifneq ($(KERNELRELEASE),)
 
     ccflags-$(CONFIG_MTK_ECCCI_DRIVER) += -I$(srctree)/drivers/misc/mediatek/eccci/$(MTK_PLATFORM)
-    ccflags-$(CONFIG_MTK_ECCCI_DRIVER) += -I$(srctree)/drivers/misc/mediatek/eccci/
+    # port_ipc.h is consumed by conn_md even when the ECCCI symbol is unset.`r`n    ccflags-y += -I$(srctree)/drivers/misc/mediatek/eccci/
     ccflags-$(CONFIG_MTK_CCCI_EXT) += -I$(srctree)/drivers/misc/mediatek/dual_ccci/
 
     ccflags-y += -I$(src)/include/
