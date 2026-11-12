@@ -61,7 +61,7 @@ MAKE=(make -C "$ROOT" O="$OUT" ARCH=arm64 CROSS_COMPILE="$CROSS_COMPILE"
 CONFIG_TOOL="$OUT/scripts/config"
 [[ -x "$CONFIG_TOOL" ]] || CONFIG_TOOL="$ROOT/scripts/config"
 [[ -x "$CONFIG_TOOL" ]] || die 'scripts/config was not built'
-if [[ "$VARIANT" = wifi && "${WIFI_DISABLE_MODEM:-1}" = 1 ]]; then
+if [[ "$VARIANT" = wifi && "${WIFI_DISABLE_MODEM:-0}" = 1 ]]; then
   for symbol in CONFIG_MTK_CCCI_DEVICES CONFIG_MTK_ECCCI_DRIVER CONFIG_MTK_ECCCI_CLDMA CONFIG_MTK_ECCCI_CCIF CONFIG_MTK_ECCCI_C2K CONFIG_MTK_CONN_MD CONFIG_MTK_CONN_LTE_IDC_SUPPORT; do
     "$CONFIG_TOOL" --file "$OUT/.config" --disable "$symbol"
   done
