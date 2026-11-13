@@ -41,7 +41,11 @@ case "$VARIANT" in
     DEFCONFIG=k61v1_64_archimedes_defconfig
     [[ -f "$ROOT/drivers/kernelsu/Kconfig" ]] || die 'this checkout has no materialized KernelSU tree'
     ;;
-  *) die "usage: $0 pure|ksu" ;;
+  wifi-ksu)
+    DEFCONFIG=k61v1_64_archytas_defconfig
+    [[ -f "$ROOT/drivers/kernelsu/Kconfig" ]] || die 'this checkout has no materialized KernelSU tree'
+    ;;
+  *) die "usage: $0 pure|ksu|wifi-ksu" ;;
 esac
 
 if [[ "${CLEAN_BUILD:-1}" = 1 ]]; then
@@ -65,7 +69,7 @@ MAKE=(make -C "$ROOT" O="$OUT" ARCH=arm64 CROSS_COMPILE="$CROSS_COMPILE"
 CONFIG_TOOL="$OUT/scripts/config"
 [[ -x "$CONFIG_TOOL" ]] || CONFIG_TOOL="$ROOT/scripts/config"
 [[ -x "$CONFIG_TOOL" ]] || die 'scripts/config was not built'
-if [[ "$VARIANT" = ksu ]]; then
+if [[ "$VARIANT" = ksu || "$VARIANT" = wifi-ksu ]]; then
   "$CONFIG_TOOL" --file "$OUT/.config" --enable CONFIG_KSU
   # KernelSU's standard mount flow requires mount namespaces.  The original
   # Archimedes defconfig disables the namespace subsystem, which makes

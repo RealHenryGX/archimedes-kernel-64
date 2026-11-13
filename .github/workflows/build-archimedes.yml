@@ -12,6 +12,7 @@ on:
           - auto
           - pure
           - kernelsu
+          - wifi-ksu
   push:
     branches: [main, kernelsu]
 
@@ -58,6 +59,15 @@ jobs:
           ./build_archimedes.sh ksu
           grep -q '^CONFIG_KSU=y' "$OUT/.config"
 
+      - name: Build Archytas Wi-Fi KernelSU kernel
+        if: ${{ env.BUILD_VARIANT == 'wifi-ksu' }}
+        env:
+          OUT: ${{ runner.temp }}/archytas-wifi-ksu
+        run: |
+          ./build_archimedes.sh wifi-ksu
+          grep -q '^CONFIG_KSU=y' "$OUT/.config"
+          grep -q '^CONFIG_MTK_COMBO_CHIP=' "$OUT/.config"
+
       - name: Package pure boot image
         if: ${{ env.BUILD_VARIANT == 'pure' }}
         env:
@@ -84,6 +94,19 @@ jobs:
             --output boot-archimedes-kernelsu-32MiB.img
           sha256sum boot-archimedes-kernelsu-32MiB.img
 
+      - name: Package Archytas Wi-Fi KernelSU boot image
+        if: ${{ env.BUILD_VARIANT == 'wifi-ksu' }}
+        env:
+          OUT: ${{ runner.temp }}/archytas-wifi-ksu
+        run: |
+          test -f package_archimedes_boot.py
+          python3 -m py_compile package_archimedes_boot.py
+          python3 package_archimedes_boot.py \
+            --template tools/archimedes-boot-template-32MiB.img \
+            --kernel "$OUT/arch/arm64/boot/Image.gz-dtb" \
+            --output boot-archytas-wifi-kernelsu-32MiB.img
+          sha256sum boot-archytas-wifi-kernelsu-32MiB.img
+
       - name: Upload pure artifacts
         if: ${{ env.BUILD_VARIANT == 'pure' }}
         uses: actions/upload-artifact@v4
@@ -93,6 +116,16 @@ jobs:
           path: |
             boot-archimedes-pure-32MiB.img
             ${{ runner.temp }}/archimedes-pure/BUILD-INFO.txt
+
+      - name: Upload Archytas Wi-Fi KernelSU artifacts
+        if: ${{ env.BUILD_VARIANT == 'wifi-ksu' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: archytas-wifi-kernelsu-${{ github.sha }}
+          if-no-files-found: error
+          path: |
+            boot-archytas-wifi-kernelsu-32MiB.img
+            ${{ runner.temp }}/archytas-wifi-ksu/BUILD-INFO.txt
 
       - name: Upload KernelSU artifacts
         if: ${{ env.BUILD_VARIANT == 'kernelsu' }}
