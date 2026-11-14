@@ -67,7 +67,7 @@ jobs:
           ./build_archimedes.sh wifi-ksu
           grep -q '^CONFIG_KSU=y' "$OUT/.config"
           grep -q '^CONFIG_MTK_COMBO_CHIP=' "$OUT/.config"
-          grep -q '^# CONFIG_MODVERSIONS is not set' "$OUT/.config"
+          ! grep -q '^CONFIG_MODVERSIONS=y' "$OUT/.config"
 
       - name: Package pure boot image
         if: ${{ env.BUILD_VARIANT == 'pure' }}
