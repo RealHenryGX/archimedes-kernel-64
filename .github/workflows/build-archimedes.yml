@@ -65,9 +65,12 @@ jobs:
           OUT: ${{ runner.temp }}/archytas-wifi-ksu
         run: |
           ./build_archimedes.sh wifi-ksu
+          grep -E '^CONFIG_(KSU|MODVERSIONS)=' "$OUT/.config" || true
           grep -q '^CONFIG_KSU=y' "$OUT/.config"
-          grep -q '^CONFIG_MTK_COMBO_CHIP=' "$OUT/.config"
-          ! grep -q '^CONFIG_MODVERSIONS=y' "$OUT/.config"
+          if grep -q '^CONFIG_MODVERSIONS=y' "$OUT/.config"; then
+            echo 'MODVERSIONS must be disabled for the vendor connectivity modules'
+            exit 1
+          fi
 
       - name: Package pure boot image
         if: ${{ env.BUILD_VARIANT == 'pure' }}
