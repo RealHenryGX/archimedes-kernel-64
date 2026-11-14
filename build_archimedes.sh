@@ -89,18 +89,18 @@ if [[ "$VARIANT" = ksu || "$VARIANT" = wifi-ksu ]]; then
   "$CONFIG_TOOL" --file "$OUT/.config" --enable CONFIG_PID_NS
   "$CONFIG_TOOL" --file "$OUT/.config" --enable CONFIG_NET_NS
   "$CONFIG_TOOL" --file "$OUT/.config" --enable CONFIG_IPC_NS
-  if [[ "$VARIANT" = wifi-ksu ]]; then
-    # The proprietary Archytas connectivity modules in vendor were built with
-    # a different Module.symvers. Keep their matching 4.9 ABI usable by not
-    # enforcing stale symbol CRCs in the kernel module loader.
-    "$CONFIG_TOOL" --file "$OUT/.config" --disable CONFIG_MODVERSIONS
-  fi
 else
   # Keep the pure branch genuinely free of KernelSU even if the shared defconfig
   # or a stale configuration enables it by default.
   "$CONFIG_TOOL" --file "$OUT/.config" --disable CONFIG_KSU
 fi
 "${MAKE[@]}" olddefconfig
+if [[ "$VARIANT" = wifi-ksu ]]; then
+  # The proprietary Archytas connectivity modules in vendor were built with
+  # a different Module.symvers. Keep their matching 4.9 ABI usable by not
+  # enforcing stale symbol CRCs in the kernel module loader.
+  "$CONFIG_TOOL" --file "$OUT/.config" --disable CONFIG_MODVERSIONS
+fi
 if [[ "$VARIANT" = wifi-ksu ]] && grep -q '^CONFIG_MODVERSIONS=y' "$OUT/.config"; then
   die 'wifi-ksu requires CONFIG_MODVERSIONS disabled for vendor connectivity modules'
 fi
