@@ -8,7 +8,17 @@ OUT=${OUT:-"$ROOT/out-archimedes-$VARIANT"}
 CROSS_COMPILE=${CROSS_COMPILE:-aarch64-linux-gnu-}
 HOSTCFLAGS=${HOSTCFLAGS:--fcommon}
 HOSTCXXFLAGS=${HOSTCXXFLAGS:--fcommon}
-LOCALVERSION=${LOCALVERSION:--agui@caner}
+if [[ "$VARIANT" = wifi-ksu ]]; then
+  LOCALVERSION=${LOCALVERSION:-+}
+else
+  LOCALVERSION=${LOCALVERSION:--agui@caner}
+fi
+KSU_EXPECTED_SIZE=${KSU_EXPECTED_SIZE:-0x033b}
+KSU_EXPECTED_HASH=${KSU_EXPECTED_HASH:-c371061b19d8c7d7d6133c6a9bafe198fa944e50c1b31c9d8daa8d7f1fc2d2d6}
+KSU_MAKE_ARGS=()
+if [[ "$VARIANT" = ksu || "$VARIANT" = wifi-ksu ]]; then
+  KSU_MAKE_ARGS+=("KSU_EXPECTED_SIZE=$KSU_EXPECTED_SIZE" "KSU_EXPECTED_HASH=$KSU_EXPECTED_HASH")
+fi
 KBUILD_BUILD_USER=${KBUILD_BUILD_USER:-agui}
 KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST:-caner}
 if [[ -z "${KBUILD_BUILD_TIMESTAMP:-}" ]]; then
@@ -88,7 +98,7 @@ fi
 
 "${MAKE[@]}" LOCALVERSION="$LOCALVERSION" KBUILD_BUILD_USER="$KBUILD_BUILD_USER" \
   KBUILD_BUILD_HOST="$KBUILD_BUILD_HOST" KBUILD_BUILD_TIMESTAMP="$KBUILD_BUILD_TIMESTAMP" \
-  -j"$JOBS" Image.gz-dtb
+  "${KSU_MAKE_ARGS[@]}" -j"$JOBS" Image.gz-dtb
 
 {
   printf 'variant=%s\n' "$VARIANT"
@@ -100,6 +110,10 @@ fi
   printf 'cross_compile=%s\n' "$CROSS_COMPILE"
   git -C "$ROOT" rev-parse HEAD 2>/dev/null | sed 's/^/source_commit=/' || printf 'source_commit=archive\n'
   "${MAKE[@]}" LOCALVERSION="$LOCALVERSION" -s kernelrelease | sed 's/^/kernelrelease=/'
+  if [[ "$VARIANT" = ksu || "$VARIANT" = wifi-ksu ]]; then
+    printf 'ksu_manager_cert_size=%s\n' "$KSU_EXPECTED_SIZE"
+    printf 'ksu_manager_cert_sha256=%s\n' "$KSU_EXPECTED_HASH"
+  fi
   sha256sum "$OUT/arch/arm64/boot/Image.gz-dtb" | sed 's# .*#  Image.gz-dtb#'
 } > "$OUT/BUILD-INFO.txt"
 
