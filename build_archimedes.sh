@@ -100,6 +100,9 @@ if [[ "$VARIANT" = wifi-ksu ]]; then
   # a different Module.symvers. Keep their matching 4.9 ABI usable by not
   # enforcing stale symbol CRCs in the kernel module loader.
   "$CONFIG_TOOL" --file "$OUT/.config" --disable CONFIG_MODVERSIONS
+  # Force Kbuild to regenerate its cached config after the post-defconfig edit.
+  rm -f -- "$OUT/include/config/auto.conf" "$OUT/include/config/auto.conf.cmd"
+  touch "$OUT/.config"
 fi
 if [[ "$VARIANT" = wifi-ksu ]] && grep -q '^CONFIG_MODVERSIONS=y' "$OUT/.config"; then
   die 'wifi-ksu requires CONFIG_MODVERSIONS disabled for vendor connectivity modules'
