@@ -2091,8 +2091,18 @@ config MODULE_FORCE_UNLOAD
 	  rmmod).  This is mainly for kernel developers and desperate users.
 	  If unsure, say N.
 
+config ARCHYTAS_WIFI_VENDOR_MODULES
+	bool "Archytas Wi-Fi vendor connectivity modules"
+	depends on MODULES
+	default n
+	help
+	  Select this for Archytas Wi-Fi builds that use the proprietary
+	  connectivity modules shipped in vendor. Their symbol CRCs come from
+	  a different Module.symvers than this kernel build.
+
 config MODVERSIONS
 	bool "Module versioning support"
+	depends on !ARCHYTAS_WIFI_VENDOR_MODULES
 	help
 	  Usually, you have to use modules compiled with your kernel.
 	  Saying Y here makes it sometimes possible to use modules

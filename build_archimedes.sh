@@ -89,6 +89,9 @@ if [[ "$VARIANT" = ksu || "$VARIANT" = wifi-ksu ]]; then
   "$CONFIG_TOOL" --file "$OUT/.config" --enable CONFIG_PID_NS
   "$CONFIG_TOOL" --file "$OUT/.config" --enable CONFIG_NET_NS
   "$CONFIG_TOOL" --file "$OUT/.config" --enable CONFIG_IPC_NS
+  if [[ "$VARIANT" = wifi-ksu ]]; then
+    "$CONFIG_TOOL" --file "$OUT/.config" --enable CONFIG_ARCHYTAS_WIFI_VENDOR_MODULES
+  fi
 else
   # Keep the pure branch genuinely free of KernelSU even if the shared defconfig
   # or a stale configuration enables it by default.
@@ -96,13 +99,8 @@ else
 fi
 "${MAKE[@]}" olddefconfig
 if [[ "$VARIANT" = wifi-ksu ]]; then
-  # The proprietary Archytas connectivity modules in vendor were built with
-  # a different Module.symvers. Keep their matching 4.9 ABI usable by not
-  # enforcing stale symbol CRCs in the kernel module loader.
-  "$CONFIG_TOOL" --file "$OUT/.config" --disable CONFIG_MODVERSIONS
-  # Force Kbuild to regenerate its cached config after the post-defconfig edit.
-  rm -f -- "$OUT/include/config/auto.conf" "$OUT/include/config/auto.conf.cmd"
-  touch "$OUT/.config"
+  grep -q '^CONFIG_ARCHYTAS_WIFI_VENDOR_MODULES=y' "$OUT/.config" ||
+    die 'Archytas vendor module compatibility option is not enabled'
 fi
 if [[ "$VARIANT" = wifi-ksu ]] && grep -q '^CONFIG_MODVERSIONS=y' "$OUT/.config"; then
   die 'wifi-ksu requires CONFIG_MODVERSIONS disabled for vendor connectivity modules'
