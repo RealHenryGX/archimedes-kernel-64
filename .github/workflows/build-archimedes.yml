@@ -67,6 +67,7 @@ jobs:
           ./build_archimedes.sh wifi-ksu
           grep -q '^CONFIG_KSU=y' "$OUT/.config"
           grep -q '^CONFIG_MTK_COMBO_CHIP=' "$OUT/.config"
+          grep -q '^# CONFIG_MODVERSIONS is not set' "$OUT/.config"
 
       - name: Package pure boot image
         if: ${{ env.BUILD_VARIANT == 'pure' }}
@@ -126,6 +127,7 @@ jobs:
           path: |
             boot-archytas-wifi-kernelsu-32MiB.img
             ${{ runner.temp }}/archytas-wifi-ksu/BUILD-INFO.txt
+            ${{ runner.temp }}/archytas-wifi-ksu/.config
 
       - name: Upload KernelSU artifacts
         if: ${{ env.BUILD_VARIANT == 'kernelsu' }}
