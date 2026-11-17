@@ -89,9 +89,6 @@ if [[ "$VARIANT" = ksu || "$VARIANT" = wifi-ksu ]]; then
   "$CONFIG_TOOL" --file "$OUT/.config" --enable CONFIG_PID_NS
   "$CONFIG_TOOL" --file "$OUT/.config" --enable CONFIG_NET_NS
   "$CONFIG_TOOL" --file "$OUT/.config" --enable CONFIG_IPC_NS
-  if [[ "$VARIANT" = wifi-ksu ]]; then
-    "$CONFIG_TOOL" --file "$OUT/.config" --enable CONFIG_ARCHYTAS_WIFI_VENDOR_MODULES
-  fi
 else
   # Keep the pure branch genuinely free of KernelSU even if the shared defconfig
   # or a stale configuration enables it by default.
@@ -99,11 +96,8 @@ else
 fi
 "${MAKE[@]}" olddefconfig
 if [[ "$VARIANT" = wifi-ksu ]]; then
-  grep -q '^CONFIG_ARCHYTAS_WIFI_VENDOR_MODULES=y' "$OUT/.config" ||
-    die 'Archytas vendor module compatibility option is not enabled'
-fi
-if [[ "$VARIANT" = wifi-ksu ]] && grep -q '^CONFIG_MODVERSIONS=y' "$OUT/.config"; then
-  die 'wifi-ksu requires CONFIG_MODVERSIONS disabled for vendor connectivity modules'
+  grep -q '^CONFIG_MODVERSIONS=y' "$OUT/.config" ||
+    die 'wifi-ksu must preserve the vendor module symbol CRC checks'
 fi
 
 "${MAKE[@]}" LOCALVERSION="$LOCALVERSION" KBUILD_BUILD_USER="$KBUILD_BUILD_USER" \
@@ -119,7 +113,7 @@ fi
   printf 'build_timestamp=%s\n' "$KBUILD_BUILD_TIMESTAMP"
   printf 'cross_compile=%s\n' "$CROSS_COMPILE"
   if [[ "$VARIANT" = wifi-ksu ]]; then
-    printf 'module_version_crc_check=disabled\n'
+    printf 'module_version_crc_check=enabled\n'
   fi
   git -C "$ROOT" rev-parse HEAD 2>/dev/null | sed 's/^/source_commit=/' || printf 'source_commit=archive\n'
   "${MAKE[@]}" LOCALVERSION="$LOCALVERSION" -s kernelrelease | sed 's/^/kernelrelease=/'
