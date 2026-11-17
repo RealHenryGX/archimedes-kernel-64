@@ -63,13 +63,8 @@ static const char KERNEL_SU_RC[] =
 	"    chown root root " KSUD_EXEC_PATH "\n"
 	"    chmod 0755 " KSUD_EXEC_PATH "\n"
 	"    restorecon " KSUD_EXEC_PATH "\n"
-	// Some GSI init trees emit post-fs-data before /data is fully prepared.
-	// Re-copy ksud before retrying so the late action never races /cache.
-	"    copy " KSUD_PATH " " KSUD_EXEC_PATH "\n"
-	"    chown root root " KSUD_EXEC_PATH "\n"
-	"    chmod 0755 " KSUD_EXEC_PATH "\n"
-	"    restorecon " KSUD_EXEC_PATH "\n"
-	"    exec u:r:init:s0 root -- " KSUD_EXEC_PATH " post-fs-data\n"
+	// post-fs-data is one-shot; replaying it here can discard a pending
+	// modules_update.img after an early mount failure.
 	"    exec u:r:init:s0 root -- " KSUD_EXEC_PATH " boot-completed\n"
 	"\n"
 
